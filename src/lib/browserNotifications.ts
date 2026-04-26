@@ -55,11 +55,6 @@ export type NotifyOptions = {
 export function notify(title: string, opts: NotifyOptions = {}): Notification | null {
   const N = api();
   if (!N || N.permission !== 'granted') return null;
-  if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
-    // Tab is foregrounded — the in-app toast/feed is enough; skip the OS popup
-    // so users aren't doubly notified.
-    return null;
-  }
   try {
     const n = new N(title, {
       body: opts.body,

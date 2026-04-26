@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import {
   getPermission,
   isSupported,
+  notify,
   requestPermission,
   type BrowserPermission,
 } from '@/lib/browserNotifications';
@@ -44,6 +45,13 @@ export function EnableNotificationsBanner() {
     setBusy(false);
     if (result === 'granted') {
       toast.success('Notifications enabled');
+      // Fire a confirmation OS popup so the user sees proof their device
+      // will actually surface them — useful for spotting browser/OS quirks
+      // (focus-assist, do-not-disturb) before the first real notification.
+      notify('Notifications enabled', {
+        body: 'You’ll see event updates here even when this tab is in the background.',
+        tag: 'hh-erp-test',
+      });
     } else if (result === 'denied') {
       toast.message('Notifications blocked. You can re-enable them in your browser settings.');
     }
