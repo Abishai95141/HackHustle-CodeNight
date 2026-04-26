@@ -14,10 +14,14 @@ export function ScanShell() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-3">
-        <span className="text-2xs uppercase tracking-[0.2em] text-muted-foreground">
-          Scanner
-        </span>
-        <span className="text-2xs text-muted-foreground">· {profile?.name}</span>
+        <div className="flex min-w-0 items-baseline gap-2">
+          <span className="text-2xs uppercase tracking-[0.2em] text-muted-foreground">
+            Scanner
+          </span>
+          <span className="hidden truncate text-2xs text-muted-foreground sm:inline">
+            · {profile?.name}
+          </span>
+        </div>
         <nav className="ml-auto flex items-center gap-1">
           {items.map(({ to, label, icon: Icon, end }) => (
             <NavLink
@@ -34,7 +38,7 @@ export function ScanShell() {
               }
             >
               <Icon className="h-3.5 w-3.5" />
-              {label}
+              <span>{label}</span>
             </NavLink>
           ))}
           <Button variant="ghost" size="icon" onClick={signOut} title="Sign out">

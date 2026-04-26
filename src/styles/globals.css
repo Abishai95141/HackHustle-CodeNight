@@ -71,10 +71,42 @@
 
   html, body, #root { height: 100%; }
 
+  html {
+    /* Smooth in-page anchor scroll, but respect reduced-motion users. */
+    scroll-behavior: smooth;
+    /* Stop iOS auto-zooming inputs on focus by keeping form-control text >= 16px. */
+    -webkit-text-size-adjust: 100%;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: 'cv11', 'ss01';
     text-rendering: optimizeLegibility;
+    /* Avoid double-tap zoom flicker on Safari touch buttons. */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Make sure inputs stay >=16px on iOS so the browser doesn't auto-zoom. */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  @screen sm {
+    input, select, textarea { font-size: inherit; }
+  }
+
+  /* Touch targets: ensure interactive elements are tap-friendly on mobile.
+     `touch-action: manipulation` removes the 300ms double-tap-zoom delay
+     without disabling pinch-zoom on the page. */
+  button, a, [role="button"] {
+    touch-action: manipulation;
   }
 
   h1, h2, h3, h4, h5, h6 { @apply font-display tracking-tight; }
@@ -83,4 +115,8 @@
 @layer utilities {
   .hairline { @apply border border-border; }
   .text-balance { text-wrap: balance; }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .safe-top { padding-top: env(safe-area-inset-top); }
+  /* Disable the iOS overscroll bounce that breaks fixed-position bottom navs. */
+  .overscroll-none { overscroll-behavior: none; }
 }

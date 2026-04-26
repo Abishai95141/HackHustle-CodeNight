@@ -155,7 +155,7 @@ function AssignSection() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
+    <div className="grid gap-6 md:grid-cols-[280px_1fr] lg:grid-cols-[300px_1fr]">
       {/* Judges list */}
       <Card>
         <CardHeader>

@@ -62,8 +62,8 @@ export function JudgeListPage() {
   );
 
   return (
-    <div className="grid h-[calc(100vh-3.5rem)] grid-cols-1 md:grid-cols-[360px_1fr]">
-      <aside className="flex min-h-0 flex-col border-r border-border bg-card">
+    <div className="grid min-h-[calc(100vh-3.5rem)] grid-cols-1 md:h-[calc(100vh-3.5rem)] md:grid-cols-[360px_1fr]">
+      <aside className="flex min-h-0 flex-col border-b border-border bg-card md:border-b-0 md:border-r">
         <header className="space-y-3 border-b border-border p-4">
           <div className="flex items-center justify-between">
             <span className="text-2xs uppercase tracking-[0.2em] text-muted-foreground">
@@ -154,11 +154,11 @@ export function JudgeListPage() {
         </div>
       </aside>
 
-      <section className="overflow-y-auto bg-background p-6 md:p-8">
+      <section className="overflow-y-auto bg-background p-4 sm:p-6 md:p-8">
         {selected ? (
           <TeamDetail team={selected} judgeId={user?.id ?? ''} />
         ) : (
-          <p className="text-sm text-muted-foreground">Pick a team from the left.</p>
+          <p className="text-sm text-muted-foreground">Pick a team from the list above.</p>
         )}
       </section>
     </div>
