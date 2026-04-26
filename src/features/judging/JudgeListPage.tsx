@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { CheckCircle2, Circle, Search } from 'lucide-react';
+import { CheckCircle2, Circle, ListFilter, Search } from 'lucide-react';
 import { useAuth } from '@/app/providers/AuthProvider';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Sheet, SheetContent, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
 import { EmptyState } from '@/components/composite/EmptyState';
 import { InlineLoader } from '@/components/composite/InlineLoader';
 import { SubmissionView } from '@/components/composite/SubmissionPanel';
@@ -24,6 +26,7 @@ export function JudgeListPage() {
   const [domainFilter, setDomainFilter] = useState<DomainFilter>('all');
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Counts per domain for the tab badges.
   const counts = useMemo(() => {
@@ -46,7 +49,8 @@ export function JudgeListPage() {
   }, [teams, domainFilter, search]);
 
   // Auto-select the first team in the current filter unless one is already chosen
-  // and is still visible.
+  // and is still visible. On mobile this means the score page is always populated
+  // — so the drawer is purely for switching between teams.
   useEffect(() => {
     if (filtered.length === 0) {
       setSelectedId(null);
@@ -62,9 +66,12 @@ export function JudgeListPage() {
     [filtered, selectedId],
   );
 
-  return (
-    <div className="grid min-h-[calc(100vh-3.5rem)] grid-cols-1 md:h-[calc(100vh-3.5rem)] md:grid-cols-[360px_1fr]">
-      <aside className="flex min-h-0 flex-col border-b border-border bg-card md:border-b-0 md:border-r">
+  // Shared list panel — same render whether it lives in the desktop sidebar
+  // or inside the mobile Sheet. Tap fires onPick which the parent uses to
+  // both set the selected id AND close the drawer on mobile.
+  function listPanel(onPick: (id: string) => void) {
+    return (
+      <div className="flex h-full min-h-0 flex-col">
         <header className="space-y-3 border-b border-border p-4">
           <div className="flex items-center justify-between">
             <span className="text-2xs uppercase tracking-[0.2em] text-muted-foreground">
@@ -120,9 +127,9 @@ export function JudgeListPage() {
                   <li key={t.id}>
                     <button
                       type="button"
-                      onClick={() => setSelectedId(t.id)}
+                      onClick={() => onPick(t.id)}
                       className={cn(
-                        'flex w-full items-center justify-between gap-2 px-4 py-3 text-left text-sm transition-colors',
+                        'flex min-h-[56px] w-full items-center justify-between gap-2 px-4 py-3 text-left text-sm transition-colors',
                         selectedId === t.id ? 'bg-secondary' : 'hover:bg-secondary/60',
                       )}
                     >
@@ -153,13 +160,57 @@ export function JudgeListPage() {
             </ul>
           )}
         </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-[calc(100vh-3rem)] flex-col md:h-[calc(100vh-3.5rem)] md:grid md:grid-cols-[360px_1fr]">
+      {/* Mobile-only top bar with "Teams" drawer trigger */}
+      <header className="sticky top-12 z-20 flex items-center justify-between gap-2 border-b border-border bg-background/95 px-4 py-2 backdrop-blur md:hidden">
+        <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-2">
+              <ListFilter className="h-4 w-4" />
+              Teams
+              <span className="ml-1 rounded-full bg-secondary px-1.5 text-2xs text-muted-foreground">
+                {filtered.length}
+              </span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[88vw] max-w-sm p-0">
+            <SheetTitle className="sr-only">Assigned teams</SheetTitle>
+            <SheetDescription className="sr-only">
+              Pick a team to score. Use search and filters to narrow down.
+            </SheetDescription>
+            {listPanel((id) => {
+              setSelectedId(id);
+              setDrawerOpen(false);
+            })}
+          </SheetContent>
+        </Sheet>
+        <div className="min-w-0 flex-1 text-right">
+          <div className="truncate text-2xs uppercase tracking-[0.2em] text-muted-foreground">
+            {selected?.domain ?? activeRoundName}
+          </div>
+          <div className="truncate text-sm font-medium">{selected?.team_name ?? '—'}</div>
+        </div>
+      </header>
+
+      {/* Desktop sidebar */}
+      <aside className="hidden min-h-0 md:flex md:flex-col md:border-r md:border-border md:bg-card">
+        {listPanel((id) => setSelectedId(id))}
       </aside>
 
+      {/* Score page */}
       <section className="overflow-y-auto bg-background p-4 sm:p-6 md:p-8">
         {selected ? (
           <TeamDetail team={selected} judgeId={user?.id ?? ''} />
         ) : (
-          <p className="text-sm text-muted-foreground">Pick a team from the list above.</p>
+          <EmptyState
+            title="No team selected"
+            body="Open the Teams drawer above to pick a team to score."
+          />
         )}
       </section>
     </div>
@@ -190,7 +241,7 @@ function TeamDetail({ team, judgeId }: { team: AssignedTeam; judgeId: string }) 
             {team.round_name}
             {team.domain ? <span>· {team.domain}</span> : null}
           </div>
-          <h2 className="font-display text-2xl font-semibold tracking-tight">{team.team_name}</h2>
+          <h2 className="font-display text-xl font-semibold tracking-tight sm:text-2xl">{team.team_name}</h2>
           <p className="text-sm text-muted-foreground">
             {team.table_number ? `Table ${team.table_number} · ` : ''}
             <span className="font-mono">{team.team_code}</span>

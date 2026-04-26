@@ -117,7 +117,7 @@ export function SubmissionPanel({ teamId }: { teamId: string }) {
       {/* Deck */}
       <section className="space-y-2">
         <Label className="text-2xs uppercase tracking-[0.18em] text-muted-foreground">
-          Deck (PDF or PPT, ≤50 MB)
+          Deck (PDF or PPT, ≤3 MB)
         </Label>
         <input
           ref={fileRef}

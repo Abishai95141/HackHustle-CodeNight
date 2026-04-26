@@ -16,6 +16,7 @@ export type SupportQuery = {
   admin_notes: string | null;
   created_at: string | null;
   user: { name: string; email: string } | null;
+  team: { team_name: string; team_code: string } | null;
 };
 
 export function useAdminQueries() {
@@ -24,7 +25,7 @@ export function useAdminQueries() {
     queryFn: async (): Promise<SupportQuery[]> => {
       const { data, error } = await supabase
         .from('queries')
-        .select('*, user:profiles(name, email)')
+        .select('*, user:profiles(name, email), team:teams(team_name, team_code)')
         .order('created_at', { ascending: false });
       if (error) throw error;
       return (data ?? []) as unknown as SupportQuery[];

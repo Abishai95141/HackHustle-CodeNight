@@ -8,6 +8,7 @@ import { useMyNotifications } from '@/data/queries/notifications';
 import { useMyProblemStatements } from '@/data/queries/problemStatements';
 import { useAppSettingsValue } from '@/data/queries/appSettings';
 import { NotificationCard } from '@/components/composite/NotificationCard';
+import { EnableNotificationsBanner } from '@/components/composite/EnableNotificationsBanner';
 import { supabase } from '@/data/client';
 import type { TeamDomain } from '@/data/queries/teams';
 
@@ -42,6 +43,8 @@ export function ParticipantHomePage() {
           {profile?.name ?? 'Participant'}
         </h1>
       </header>
+
+      <EnableNotificationsBanner />
 
       {winners_announced ? (
         <Link

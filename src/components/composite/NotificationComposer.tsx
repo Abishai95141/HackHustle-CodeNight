@@ -323,20 +323,52 @@ function MultiPicker({
   options,
   selected,
   onChange,
+  searchPlaceholder = 'Search…',
 }: {
   label: string;
   options: { id: string; label: string }[];
   selected: string[];
   onChange: (next: string[]) => void;
+  searchPlaceholder?: string;
 }) {
+  const [query, setQuery] = useState('');
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return options;
+    return options.filter((o) => o.label.toLowerCase().includes(q));
+  }, [options, query]);
+
+  // Quick-glance summary so the admin sees what's picked even when they
+  // scroll the list — important when teams > 20.
+  const selectedCount = selected.length;
+
   return (
     <div className="space-y-1.5">
-      <Label>{label}</Label>
-      <div className="max-h-48 overflow-y-auto rounded-md border border-border">
-        {options.length === 0 ? (
-          <div className="px-3 py-6 text-center text-2xs text-muted-foreground">No options</div>
+      <div className="flex items-center justify-between">
+        <Label>{label}</Label>
+        {selectedCount > 0 ? (
+          <button
+            type="button"
+            onClick={() => onChange([])}
+            className="text-2xs text-muted-foreground hover:text-foreground"
+          >
+            Clear ({selectedCount})
+          </button>
+        ) : null}
+      </div>
+      <Input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder={searchPlaceholder}
+        className="h-9"
+      />
+      <div className="max-h-56 overflow-y-auto rounded-md border border-border">
+        {filtered.length === 0 ? (
+          <div className="px-3 py-6 text-center text-2xs text-muted-foreground">
+            {options.length === 0 ? 'No options' : 'Nothing matches'}
+          </div>
         ) : (
-          options.map((o) => {
+          filtered.map((o) => {
             const on = selected.includes(o.id);
             return (
               <button
@@ -350,8 +382,8 @@ function MultiPicker({
                   on ? 'bg-secondary' : 'hover:bg-secondary/60',
                 )}
               >
-                <span>{o.label}</span>
-                {on ? <span className="text-2xs">✓</span> : null}
+                <span className="min-w-0 truncate">{o.label}</span>
+                {on ? <span className="ml-2 text-2xs text-emerald-700 dark:text-emerald-300">✓</span> : null}
               </button>
             );
           })

@@ -8,7 +8,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/cn';
 import {
-  BAND_LABEL,
   TOTAL_MAX,
   bandFor,
   totalOf,
@@ -16,14 +15,31 @@ import {
   type RubricKey,
   type ScoreSheet,
 } from '@/domain/scoring/rules';
+
+// Short labels for the band pill — the original "Very poor / missing" and
+// "Excellent / near real-world" wrap awkwardly on mobile and crowd the score.
+const BAND_SHORT_LABEL: Record<ReturnType<typeof bandFor>, string> = {
+  missing: 'Missing',
+  weak: 'Weak',
+  good: 'Good',
+  excellent: 'Excellent',
+};
 import { upsertScore } from '@/data/rpc/judging';
 import type { ScoreRow } from '@/data/queries/judging';
 
-const BAND_TONE: Record<ReturnType<typeof bandFor>, string> = {
-  missing: 'border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-300',
-  weak: 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300',
-  good: 'border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-300',
-  excellent: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+// Subtle band styling — instead of a busy filled pill, a colored dot + text
+// next to the slider scale. Same palette as before, far less visual weight.
+const BAND_TEXT: Record<ReturnType<typeof bandFor>, string> = {
+  missing: 'text-rose-700 dark:text-rose-300',
+  weak: 'text-amber-700 dark:text-amber-300',
+  good: 'text-sky-700 dark:text-sky-300',
+  excellent: 'text-emerald-700 dark:text-emerald-300',
+};
+const BAND_DOT: Record<ReturnType<typeof bandFor>, string> = {
+  missing: 'bg-rose-500',
+  weak: 'bg-amber-500',
+  good: 'bg-sky-500',
+  excellent: 'bg-emerald-500',
 };
 
 function sheetFromRow(row: ScoreRow | null): ScoreSheet {
@@ -97,43 +113,52 @@ export function ScoringForm({
         </div>
       </header>
 
-      <ol className="space-y-4">
+      <ol className="space-y-3">
         {v2Rubrics.map((r) => {
           const value = sheet[r.key] ?? 0;
           const band = bandFor(value, r.max);
           return (
             <li
               key={r.key}
-              className="space-y-2 rounded-lg border border-border bg-card p-4"
+              className="space-y-3 rounded-lg border border-border bg-card p-4"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-sm font-medium">{r.label}</div>
-                  <div className="text-2xs text-muted-foreground">{r.hint}</div>
+              {/* Title row — label + score, breathing space on the right */}
+              <div className="flex items-baseline justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-medium leading-snug">{r.label}</div>
+                  <div className="mt-0.5 line-clamp-2 text-2xs text-muted-foreground">{r.hint}</div>
                 </div>
-                <div className="text-right">
-                  <div className="font-mono text-lg tabular-nums">
-                    {value}
-                    <span className="ml-1 text-2xs text-muted-foreground">/ {r.max}</span>
-                  </div>
-                  <span
-                    className={cn(
-                      'mt-0.5 inline-block rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em]',
-                      BAND_TONE[band],
-                    )}
-                  >
-                    {BAND_LABEL[band]}
-                  </span>
+                <div className="shrink-0 font-mono text-xl tabular-nums leading-none">
+                  {value}
+                  <span className="ml-1 text-2xs font-normal text-muted-foreground">/{r.max}</span>
                 </div>
               </div>
-              <Slider
-                min={0}
-                max={r.max}
-                step={1}
-                value={[value]}
-                onValueChange={([v]) => update(r.key, v)}
-                onValueCommit={() => submit.mutate()}
-              />
+
+              {/* Slider with band dot inline so it doesn't add a third row */}
+              <div className="space-y-2">
+                <Slider
+                  min={0}
+                  max={r.max}
+                  step={1}
+                  value={[value]}
+                  onValueChange={([v]) => update(r.key, v)}
+                  onValueCommit={() => submit.mutate()}
+                  aria-label={`${r.label} score`}
+                />
+                <div className="flex items-center justify-between text-2xs text-muted-foreground">
+                  <span className="tabular-nums">0</span>
+                  <span
+                    className={cn(
+                      'inline-flex items-center gap-1.5 font-medium uppercase tracking-[0.14em]',
+                      BAND_TEXT[band],
+                    )}
+                  >
+                    <span className={cn('inline-block h-1.5 w-1.5 rounded-full', BAND_DOT[band])} />
+                    {BAND_SHORT_LABEL[band]}
+                  </span>
+                  <span className="tabular-nums">{r.max}</span>
+                </div>
+              </div>
             </li>
           );
         })}

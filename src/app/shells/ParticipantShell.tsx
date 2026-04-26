@@ -2,6 +2,8 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { Award, Bell, FileText, HelpCircle, QrCode, Trophy, Users } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { useAppSettingsValue } from '@/data/queries/appSettings';
+import { useAuth } from '@/app/providers/AuthProvider';
+import { usePushOnNewNotification } from '@/lib/usePushOnNewNotification';
 
 type Tab = { to: string; label: string; icon: React.ComponentType<{ className?: string }>; end?: boolean };
 
@@ -18,6 +20,8 @@ const winnersTab: Tab = { to: '/me/winners', label: 'Winners', icon: Award };
 
 export function ParticipantShell() {
   const { winners_announced } = useAppSettingsValue();
+  const { user } = useAuth();
+  usePushOnNewNotification(user?.id);
 
   // When winners are announced, replace "Help" with "Winners" so the
   // celebratory page is one tap away. Help is still reachable by URL and
