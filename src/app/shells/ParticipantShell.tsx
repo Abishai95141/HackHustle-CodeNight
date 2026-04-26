@@ -1,8 +1,11 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { Bell, FileText, HelpCircle, QrCode, Trophy, Users } from 'lucide-react';
+import { Award, Bell, FileText, HelpCircle, QrCode, Trophy, Users } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { useAppSettingsValue } from '@/data/queries/appSettings';
 
-const tabs = [
+type Tab = { to: string; label: string; icon: React.ComponentType<{ className?: string }>; end?: boolean };
+
+const baseTabs: Tab[] = [
   { to: '/me', label: 'Me', icon: QrCode, end: true },
   { to: '/me/team', label: 'Team', icon: Users },
   { to: '/me/problems', label: 'Brief', icon: FileText },
@@ -11,10 +14,20 @@ const tabs = [
   { to: '/me/help', label: 'Help', icon: HelpCircle },
 ];
 
+const winnersTab: Tab = { to: '/me/winners', label: 'Winners', icon: Award };
+
 export function ParticipantShell() {
+  const { winners_announced } = useAppSettingsValue();
+
+  // When winners are announced, replace "Help" with "Winners" so the
+  // celebratory page is one tap away. Help is still reachable by URL and
+  // from the home page if needed.
+  const tabs = winners_announced
+    ? baseTabs.map((t) => (t.to === '/me/help' ? winnersTab : t))
+    : baseTabs;
+
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      {/* pb covers the fixed bottom nav + the iOS home-indicator inset */}
       <main className="flex-1 overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+5rem)]">
         <Outlet />
       </main>

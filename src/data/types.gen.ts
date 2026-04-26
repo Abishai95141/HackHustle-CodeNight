@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      winners: {
+        Row: {
+          citation: string | null
+          created_at: string
+          domain: Database["public"]["Enums"]["team_domain"]
+          id: string
+          rank: number
+          team_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          citation?: string | null
+          created_at?: string
+          domain: Database["public"]["Enums"]["team_domain"]
+          id?: string
+          rank: number
+          team_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          citation?: string | null
+          created_at?: string
+          domain?: Database["public"]["Enums"]["team_domain"]
+          id?: string
+          rank?: number
+          team_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "winners_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_settings: {
         Row: {
           key: string

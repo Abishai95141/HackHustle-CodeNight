@@ -4,18 +4,20 @@ import { supabase } from '@/data/client';
 
 /** All known flag keys. Add a new key here AND seed it in 0010 / a follow-up
  *  migration so the row exists when the client reads. */
-export type AppSettingKey = 'scores_published' | 'submissions_locked' | 'logging_enabled';
+export type AppSettingKey = 'scores_published' | 'submissions_locked' | 'logging_enabled' | 'winners_announced';
 
 export type AppSettings = {
   scores_published: boolean;
   submissions_locked: boolean;
   logging_enabled: boolean;
+  winners_announced: boolean;
 };
 
 const DEFAULTS: AppSettings = {
   scores_published: false,
   submissions_locked: false,
   logging_enabled: true,
+  winners_announced: false,
 };
 
 /** Fetches every row of app_settings and folds it into a typed object.

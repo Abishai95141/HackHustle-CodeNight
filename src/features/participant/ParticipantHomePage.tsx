@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, FileText, Lock, Unlock } from 'lucide-react';
+import { Award, Bell, FileText, Lock, Sparkles, Unlock } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { useMyNotifications } from '@/data/queries/notifications';
 import { useMyProblemStatements } from '@/data/queries/problemStatements';
+import { useAppSettingsValue } from '@/data/queries/appSettings';
 import { NotificationCard } from '@/components/composite/NotificationCard';
 import { supabase } from '@/data/client';
 import type { TeamDomain } from '@/data/queries/teams';
@@ -17,6 +18,7 @@ export function ParticipantHomePage() {
   const latest = (notifications.data ?? []).slice(0, 2);
   const problems = useMyProblemStatements();
   const problemCount = problems.data?.length ?? 0;
+  const { winners_announced } = useAppSettingsValue();
 
   const team = useQuery({
     queryKey: ['me', 'team-summary', profile?.team_id],
@@ -34,12 +36,30 @@ export function ParticipantHomePage() {
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 pb-10 pt-12">
-      <header className="mb-10 space-y-1">
+      <header className="mb-6 space-y-1">
         <div className="text-2xs uppercase tracking-[0.2em] text-muted-foreground">Hello</div>
         <h1 className="font-display text-2xl font-semibold tracking-tight">
           {profile?.name ?? 'Participant'}
         </h1>
       </header>
+
+      {winners_announced ? (
+        <Link
+          to="/me/winners"
+          className="group relative mb-6 flex items-center gap-3 overflow-hidden rounded-2xl border border-amber-500/40 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent p-4 transition-transform hover:scale-[1.01]"
+        >
+          <Sparkles className="pointer-events-none absolute -right-2 -top-2 h-16 w-16 text-amber-500/15" />
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300">
+            <Award className="h-5 w-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-2xs font-medium uppercase tracking-[0.18em] text-amber-700 dark:text-amber-300">
+              Winners announced
+            </div>
+            <div className="text-sm font-medium">See who took home each domain →</div>
+          </div>
+        </Link>
+      ) : null}
 
       <button
         type="button"

@@ -28,6 +28,7 @@ const AdminJudgingPage           = lazy(() => import('@/features/admin/AdminJudg
 const AdminNotificationsPage     = lazy(() => import('@/features/admin/AdminNotificationsPage').then((m) => ({ default: m.AdminNotificationsPage })));
 const AdminProblemStatementsPage = lazy(() => import('@/features/admin/AdminProblemStatementsPage').then((m) => ({ default: m.AdminProblemStatementsPage })));
 const AdminLogsPage              = lazy(() => import('@/features/admin/AdminLogsPage').then((m) => ({ default: m.AdminLogsPage })));
+const AdminWinnersPage           = lazy(() => import('@/features/admin/AdminWinnersPage').then((m) => ({ default: m.AdminWinnersPage })));
 const ScannerPage                = lazy(() => import('@/features/scanner/ScannerPage').then((m) => ({ default: m.ScannerPage })));
 const VolunteerNotifyPage        = lazy(() => import('@/features/scanner/VolunteerNotifyPage').then((m) => ({ default: m.VolunteerNotifyPage })));
 const RsvpRosterPage             = lazy(() => import('@/features/rsvp/RsvpRosterPage').then((m) => ({ default: m.RsvpRosterPage })));
@@ -38,6 +39,7 @@ const ParticipantBoardPage       = lazy(() => import('@/features/participant/Par
 const ParticipantHelpPage        = lazy(() => import('@/features/participant/ParticipantHelpPage').then((m) => ({ default: m.ParticipantHelpPage })));
 const ParticipantNotificationsPage = lazy(() => import('@/features/participant/ParticipantNotificationsPage').then((m) => ({ default: m.ParticipantNotificationsPage })));
 const ParticipantProblemsPage    = lazy(() => import('@/features/participant/ParticipantProblemsPage').then((m) => ({ default: m.ParticipantProblemsPage })));
+const ParticipantWinnersPage     = lazy(() => import('@/features/participant/ParticipantWinnersPage').then((m) => ({ default: m.ParticipantWinnersPage })));
 const PublicLeaderboardPage      = lazy(() => import('@/features/leaderboard/PublicLeaderboardPage').then((m) => ({ default: m.PublicLeaderboardPage })));
 const NotFoundPage               = lazy(() => import('@/features/system/NotFoundPage').then((m) => ({ default: m.NotFoundPage })));
 
@@ -92,6 +94,7 @@ export function AppRoutes() {
           <Route path="/admin/notifications" element={<AdminNotificationsPage />} />
           <Route path="/admin/problems" element={<AdminProblemStatementsPage />} />
           <Route path="/admin/logs" element={<AdminLogsPage />} />
+          <Route path="/admin/winners" element={<AdminWinnersPage />} />
         </Route>
 
         {/* RSVP staff */}
@@ -153,6 +156,7 @@ export function AppRoutes() {
           <Route path="/me/help" element={<ParticipantHelpPage />} />
           <Route path="/me/notifications" element={<ParticipantNotificationsPage />} />
           <Route path="/me/problems" element={<ParticipantProblemsPage />} />
+          <Route path="/me/winners" element={<ParticipantWinnersPage />} />
         </Route>
 
         {/* Public */}

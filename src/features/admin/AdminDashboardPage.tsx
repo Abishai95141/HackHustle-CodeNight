@@ -441,6 +441,7 @@ function ControlsPanel() {
         scores_published:   ['Scores published — visible to participants', 'Scores hidden from participants'],
         submissions_locked: ['Submissions locked',                          'Submissions unlocked'],
         logging_enabled:    ['Activity logging on',                         'Activity logging paused'],
+        winners_announced:  ['Winners announced',                            'Winners hidden'],
       };
       toast.success(labels[vars.key][vars.value ? 0 : 1]);
     },
