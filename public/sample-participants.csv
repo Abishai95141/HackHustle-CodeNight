@@ -1,0 +1,8 @@
+name,email,phone,team_name,team_code,domain,tshirt_size,dietary_restrictions,role
+Riya Sharma,riya@example.com,+91-9876500001,Apex Coders,APX-001,Fintech,M,,participant
+Arjun Patel,arjun@example.com,+91-9876500002,Apex Coders,APX-001,Fintech,L,vegetarian,participant
+Maya Iyer,maya@example.com,+91-9876500003,Bytewise,BYT-002,Healthcare,S,,participant
+Kabir Khan,kabir@example.com,+91-9876500004,Bytewise,BYT-002,Healthcare,L,,participant
+Sara Ali,sara@example.com,+91-9876500005,Cargo Crew,CGO-003,Logistics,M,,participant
+Volunteer One,volunteer@example.com,+91-9876510001,,,,M,,volunteer
+Judge One,judge@example.com,+91-9876520001,,,,L,,judge

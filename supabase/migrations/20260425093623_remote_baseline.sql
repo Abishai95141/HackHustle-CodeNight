@@ -1,0 +1,4 @@
+-- Baseline placeholder for the schema applied to the remote project before
+-- the CLI was wired up. Mirrors the contents of 0001_init.sql which was
+-- applied via the Supabase dashboard. This file is intentionally empty so
+-- `supabase db push` recognises the version without re-running DDL.
