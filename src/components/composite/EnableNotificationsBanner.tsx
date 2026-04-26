@@ -134,8 +134,8 @@ export function EnableNotificationsBanner() {
   );
 }
 
-function sendTest() {
-  const fired = notify('Test notification', {
+async function sendTest() {
+  const fired = await notify('Test notification', {
     body: 'If you see this in your notification centre, push is working.',
     tag: 'hh-erp-test',
   });

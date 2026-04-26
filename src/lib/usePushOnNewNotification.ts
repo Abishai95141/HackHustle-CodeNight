@@ -64,26 +64,28 @@ export function usePushOnNewNotification(userId: string | undefined) {
     });
     if (fresh.length === 0) return;
 
-    for (const n of fresh) {
-      seen.add(n.id);
-      const fired = notify(n.title, {
-        body: n.body,
-        tag: n.id,
-        url: '/me/notifications',
-      });
-      if (!fired || getPermission() !== 'granted') {
-        toast.message(n.title, {
-          description: n.body,
-          duration: 8000,
-          action: {
-            label: 'Open',
-            onClick: () => {
-              window.location.href = '/me/notifications';
-            },
-          },
+    (async () => {
+      for (const n of fresh) {
+        seen.add(n.id);
+        const fired = await notify(n.title, {
+          body: n.body,
+          tag: n.id,
+          url: '/me/notifications',
         });
+        if (!fired || getPermission() !== 'granted') {
+          toast.message(n.title, {
+            description: n.body,
+            duration: 8000,
+            action: {
+              label: 'Open',
+              onClick: () => {
+                window.location.href = '/me/notifications';
+              },
+            },
+          });
+        }
       }
-    }
-    saveSeen(seen);
+      saveSeen(seen);
+    })();
   }, [data, userId]);
 }
