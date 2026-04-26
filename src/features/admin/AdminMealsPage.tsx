@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useMealRoster, useMealSessions } from '@/data/queries/meals';
+import { Pill } from '@/components/composite/Pill';
 import { TEAM_DOMAINS, type TeamDomain } from '@/data/queries/teams';
 import { supabase } from '@/data/client';
 import { downloadCsv } from '@/lib/csv';
@@ -315,16 +316,10 @@ function MealRosterPanel({ mealType, displayName }: { mealType: string; displayN
           <div className="text-2xs uppercase tracking-[0.2em] text-muted-foreground">Roster</div>
           <h2 className="font-display text-lg font-semibold tracking-tight">{displayName}</h2>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-2xs">
-          <span className="rounded-full border border-border bg-card px-2 py-0.5">
-            {counts.total} total
-          </span>
-          <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-emerald-700 dark:text-emerald-300">
-            {counts.claimed} claimed · {pct}%
-          </span>
-          <span className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-amber-700 dark:text-amber-300">
-            {counts.pending} not yet
-          </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <Pill tone="neutral">{counts.total} total</Pill>
+          <Pill tone="emerald">{counts.claimed} claimed · {pct}%</Pill>
+          <Pill tone="amber">{counts.pending} not yet</Pill>
         </div>
       </header>
 

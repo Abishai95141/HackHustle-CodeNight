@@ -4,6 +4,7 @@ import { CheckCircle2, Circle, Search } from 'lucide-react';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/composite/EmptyState';
+import { InlineLoader } from '@/components/composite/InlineLoader';
 import { SubmissionView } from '@/components/composite/SubmissionPanel';
 import { ScoringForm } from '@/components/composite/ScoringForm';
 import { cn } from '@/lib/cn';
@@ -98,7 +99,7 @@ export function JudgeListPage() {
 
         <div className="min-h-0 flex-1 overflow-y-auto">
           {isLoading ? (
-            <div className="px-4 py-3 text-sm text-muted-foreground">Loading…</div>
+            <InlineLoader className="px-4" />
           ) : teams.length === 0 ? (
             <div className="p-4">
               <EmptyState

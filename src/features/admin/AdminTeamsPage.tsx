@@ -33,6 +33,7 @@ import { setTeamTableNumber } from '@/data/rpc/teams';
 import { supabase } from '@/data/client';
 import { cn } from '@/lib/cn';
 import { TeamDetailDialog } from '@/components/composite/TeamDetailDialog';
+import { Pill } from '@/components/composite/Pill';
 
 export function AdminTeamsPage() {
   const { data: teams = [], isLoading } = useTeams();
@@ -315,16 +316,11 @@ export function AdminTeamsPage() {
                   <TableCell className="font-mono text-2xs text-muted-foreground">{t.team_code}</TableCell>
                   <TableCell>
                     {t.domain ? (
-                      <span className="inline-flex items-center rounded-full border border-border bg-secondary px-2 py-0.5 text-2xs font-medium uppercase tracking-[0.14em]">
-                        {t.domain}
-                      </span>
+                      <Pill tone="neutral">{t.domain}</Pill>
                     ) : t.member_count > 0 ? (
-                      <span
-                        className="inline-flex items-center gap-1 rounded-full border border-rose-500/40 bg-rose-500/10 px-2 py-0.5 text-2xs font-medium uppercase tracking-[0.14em] text-rose-700 dark:text-rose-300"
-                        title="Teams with participants must have a domain set"
-                      >
+                      <Pill tone="rose" title="Teams with participants must have a domain set">
                         ! missing
-                      </span>
+                      </Pill>
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
@@ -661,8 +657,9 @@ function InlineTableNumber({ team }: { team: TeamRow }) {
             e.preventDefault();
             commit();
           }}
-          className="text-emerald-600 hover:text-emerald-700"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-md text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           title="Save (Enter)"
+          aria-label={`Save table number for ${team.team_name}`}
         >
           <Check className="h-3.5 w-3.5" />
         </button>
@@ -672,8 +669,9 @@ function InlineTableNumber({ team }: { team: TeamRow }) {
             e.preventDefault();
             cancel();
           }}
-          className="text-muted-foreground hover:text-foreground"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           title="Cancel (Esc)"
+          aria-label="Cancel edit"
         >
           <X className="h-3.5 w-3.5" />
         </button>
@@ -689,9 +687,10 @@ function InlineTableNumber({ team }: { team: TeamRow }) {
         setEditing(true);
       }}
       className={cn(
-        'group inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 text-left transition-colors hover:bg-secondary',
+        'group inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 text-left transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
       )}
       title="Click to edit table number"
+      aria-label={`Edit table number for ${team.team_name} — currently ${team.table_number ?? 'not set'}`}
     >
       <span className={team.table_number ? '' : 'text-muted-foreground'}>
         {team.table_number ?? '—'}

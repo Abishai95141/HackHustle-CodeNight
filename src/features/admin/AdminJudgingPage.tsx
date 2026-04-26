@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { AlertTriangle, Award, CheckCircle2, ChevronDown, ChevronRight, Circle, ClipboardCheck, Eraser, Gavel, Loader2, Search, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/composite/PageHeader';
 import { EmptyState } from '@/components/composite/EmptyState';
+import { InlineLoader } from '@/components/composite/InlineLoader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -168,7 +169,7 @@ function AssignSection() {
         </CardHeader>
         <CardContent className="space-y-1">
           {judges.isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading…</p>
+            <InlineLoader />
           ) : (judges.data ?? []).length === 0 ? (
             <EmptyState
               title="No judges"
@@ -423,7 +424,7 @@ function StatusSection() {
       {/* Status table */}
       <div className="overflow-x-auto rounded-lg border border-border bg-card">
         {status.isLoading ? (
-          <p className="px-4 py-12 text-center text-sm text-muted-foreground">Loading…</p>
+          <InlineLoader />
         ) : filtered.length === 0 ? (
           <EmptyState
             title="Nothing matches"
@@ -576,7 +577,7 @@ function RankingsSection() {
   const totalScored = rows.filter((r) => r.total_score > 0).length;
 
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground">Loading…</p>;
+    return <InlineLoader />;
   }
 
   return (

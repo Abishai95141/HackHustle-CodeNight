@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Edit2, FileText, Loader2, Lock, Plus, Search, Trash2, Unlock } from 'lucide-react';
 import { PageHeader } from '@/components/composite/PageHeader';
 import { EmptyState } from '@/components/composite/EmptyState';
+import { InlineLoader } from '@/components/composite/InlineLoader';
 import { MarkdownEditor } from '@/components/composite/MarkdownEditor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -378,7 +379,7 @@ export function AdminProblemStatementsPage() {
 
       <div className="space-y-3">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <InlineLoader />
         ) : filtered.length === 0 ? (
           <EmptyState
             title="Nothing matches"

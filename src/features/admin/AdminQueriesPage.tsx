@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { PageHeader } from '@/components/composite/PageHeader';
 import { EmptyState } from '@/components/composite/EmptyState';
+import { InlineLoader } from '@/components/composite/InlineLoader';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -59,7 +60,7 @@ export function AdminQueriesPage() {
       </div>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <InlineLoader />
       ) : filtered.length === 0 ? (
         <EmptyState
           title="No queries"

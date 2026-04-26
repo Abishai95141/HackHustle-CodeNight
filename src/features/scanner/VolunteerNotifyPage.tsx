@@ -1,6 +1,7 @@
 import { useAuth } from '@/app/providers/AuthProvider';
 import { PageHeader } from '@/components/composite/PageHeader';
 import { EmptyState } from '@/components/composite/EmptyState';
+import { InlineLoader } from '@/components/composite/InlineLoader';
 import { NotificationCard } from '@/components/composite/NotificationCard';
 import { NotificationComposer } from '@/components/composite/NotificationComposer';
 import { useMyDraftNotifications } from '@/data/queries/notifications';
@@ -25,7 +26,7 @@ export function VolunteerNotifyPage() {
           Your drafts
         </h2>
         {drafts.isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <InlineLoader />
         ) : (drafts.data ?? []).length === 0 ? (
           <EmptyState title="No drafts yet" body="Submitted notifications will appear here with their approval status." />
         ) : (

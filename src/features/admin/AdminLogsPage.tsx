@@ -13,6 +13,7 @@ import {
 import { format } from 'date-fns';
 import { PageHeader } from '@/components/composite/PageHeader';
 import { EmptyState } from '@/components/composite/EmptyState';
+import { InlineLoader } from '@/components/composite/InlineLoader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -273,7 +274,7 @@ export function AdminLogsPage() {
       {/* Log list */}
       <div className="overflow-hidden rounded-lg border border-border bg-card">
         {logs.isLoading ? (
-          <p className="px-4 py-12 text-center text-sm text-muted-foreground">Loading…</p>
+          <InlineLoader />
         ) : logs.error ? (
           <p className="px-4 py-12 text-center text-sm text-rose-700 dark:text-rose-300">
             Failed to load: {(logs.error as Error).message}

@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Check, Pencil, Search, X } from 'lucide-react';
 import { PageHeader } from '@/components/composite/PageHeader';
 import { EmptyState } from '@/components/composite/EmptyState';
+import { InlineLoader } from '@/components/composite/InlineLoader';
 import { Input } from '@/components/ui/input';
 import {
   Table,
@@ -102,7 +103,7 @@ export function RsvpTeamsPage() {
 
       <div className="overflow-x-auto rounded-lg border border-border bg-card">
         {isLoading ? (
-          <p className="py-12 text-center text-sm text-muted-foreground">Loading…</p>
+          <InlineLoader />
         ) : filtered.length === 0 ? (
           <EmptyState
             title="No teams"
@@ -211,8 +212,9 @@ function InlineTableEdit({ team }: { team: TeamRow }) {
             e.preventDefault();
             commit();
           }}
-          className="text-emerald-600 hover:text-emerald-700"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-md text-emerald-600 hover:bg-emerald-500/10 hover:text-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           title="Save (Enter)"
+          aria-label={`Save table number for ${team.team_name}`}
         >
           <Check className="h-3.5 w-3.5" />
         </button>
@@ -222,8 +224,9 @@ function InlineTableEdit({ team }: { team: TeamRow }) {
             e.preventDefault();
             cancel();
           }}
-          className="text-muted-foreground hover:text-foreground"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           title="Cancel (Esc)"
+          aria-label="Cancel edit"
         >
           <X className="h-3.5 w-3.5" />
         </button>
@@ -238,8 +241,9 @@ function InlineTableEdit({ team }: { team: TeamRow }) {
         setDraft(team.table_number ?? '');
         setEditing(true);
       }}
-      className="group inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 transition-colors hover:bg-secondary"
+      className="group inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 transition-colors hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       title="Click to edit table"
+      aria-label={`Edit table number for ${team.team_name} — currently ${team.table_number ?? 'not set'}`}
     >
       <span className={team.table_number ? '' : 'text-muted-foreground'}>
         {team.table_number ?? '—'}

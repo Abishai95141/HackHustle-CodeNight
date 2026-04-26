@@ -520,6 +520,7 @@ export function AdminUsersPage() {
             type="file"
             ref={fileRef}
             accept=".csv"
+            aria-label="Choose a participants CSV file to import"
             className="hidden"
             onChange={handleCsv}
           />

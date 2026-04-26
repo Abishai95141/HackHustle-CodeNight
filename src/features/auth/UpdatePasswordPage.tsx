@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/app/providers/AuthProvider';
+import { InlineLoader } from '@/components/composite/InlineLoader';
 import { supabase } from '@/data/client';
 
 export function UpdatePasswordPage() {
@@ -50,7 +51,7 @@ export function UpdatePasswordPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-6">
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <InlineLoader />
       </div>
     );
   }

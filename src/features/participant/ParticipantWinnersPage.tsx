@@ -4,6 +4,7 @@ import { Crown, Lock, Medal, Sparkles, Star } from 'lucide-react';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { PageHeader } from '@/components/composite/PageHeader';
 import { EmptyState } from '@/components/composite/EmptyState';
+import { InlineLoader } from '@/components/composite/InlineLoader';
 import { supabase } from '@/data/client';
 import { useWinners, type WinnerRow } from '@/data/queries/winners';
 import { useAppSettingsValue } from '@/data/queries/appSettings';
@@ -101,7 +102,7 @@ export function ParticipantWinnersPage() {
         {!winners_announced ? (
           <LockedState />
         ) : isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <InlineLoader />
         ) : rows.every((r) => !r.team_id) ? (
           <LockedState />
         ) : (
@@ -273,8 +274,9 @@ function PodiumCard({
           {isFirst ? '1st place' : '2nd place'}
         </span>
         {isMine ? (
-          <span className="text-2xs uppercase tracking-[0.18em] text-foreground">
-            That's you 🎉
+          <span className="inline-flex items-center gap-1 rounded-full border border-foreground/30 bg-background px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-foreground">
+            <Sparkles className="h-2.5 w-2.5" />
+            That's you
           </span>
         ) : null}
       </div>

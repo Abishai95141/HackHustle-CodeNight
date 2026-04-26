@@ -4,6 +4,7 @@ import { Crown, Lock, Medal } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { EmptyState } from '@/components/composite/EmptyState';
+import { InlineLoader } from '@/components/composite/InlineLoader';
 import { useLeaderboardTeams } from '@/data/queries/teams';
 import { useAppSettingsValue } from '@/data/queries/appSettings';
 import { supabase } from '@/data/client';
@@ -30,7 +31,7 @@ export function LeaderboardView({ compact = false }: { compact?: boolean }) {
   }, [qc]);
 
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground">Loading…</p>;
+    return <InlineLoader />;
   }
 
   // Hard gate: when the admin hasn't pressed Publish, participants see a

@@ -3,6 +3,7 @@ import { FileText, Lock } from 'lucide-react';
 import { useAuth } from '@/app/providers/AuthProvider';
 import { PageHeader } from '@/components/composite/PageHeader';
 import { EmptyState } from '@/components/composite/EmptyState';
+import { InlineLoader } from '@/components/composite/InlineLoader';
 import { MarkdownView } from '@/components/composite/MarkdownView';
 import { supabase } from '@/data/client';
 import { useMyProblemStatements } from '@/data/queries/problemStatements';
@@ -42,7 +43,7 @@ export function ParticipantProblemsPage() {
 
       <div className="mt-6 space-y-4">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <InlineLoader />
         ) : !profile?.team_id ? (
           <EmptyState
             title="No team yet"

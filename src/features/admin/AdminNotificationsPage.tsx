@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Check, Loader2, Plus, Trash2, X } from 'lucide-react';
 import { PageHeader } from '@/components/composite/PageHeader';
 import { EmptyState } from '@/components/composite/EmptyState';
+import { InlineLoader } from '@/components/composite/InlineLoader';
 import { NotificationCard } from '@/components/composite/NotificationCard';
 import { NotificationComposer } from '@/components/composite/NotificationComposer';
 import { Button } from '@/components/ui/button';
@@ -136,7 +137,7 @@ export function AdminNotificationsPage() {
 
       <div className="space-y-3">
         {(tab === 'pending' ? pending.isLoading : all.isLoading) ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <InlineLoader />
         ) : list.length === 0 ? (
           <EmptyState
             title={tab === 'pending' ? 'Inbox zero' : 'No notifications yet'}

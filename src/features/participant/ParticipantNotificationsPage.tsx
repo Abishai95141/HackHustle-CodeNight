@@ -1,6 +1,7 @@
 import { Bell } from 'lucide-react';
 import { PageHeader } from '@/components/composite/PageHeader';
 import { EmptyState } from '@/components/composite/EmptyState';
+import { InlineLoader } from '@/components/composite/InlineLoader';
 import { NotificationCard } from '@/components/composite/NotificationCard';
 import { useMyNotifications } from '@/data/queries/notifications';
 
@@ -16,7 +17,7 @@ export function ParticipantNotificationsPage() {
 
       <div className="mt-6 space-y-3">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <InlineLoader />
         ) : data.length === 0 ? (
           <EmptyState
             title="You're all caught up"
