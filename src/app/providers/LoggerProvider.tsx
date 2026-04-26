@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { logClick, logError, logRoute } from '@/lib/logger';
+import { logClick, logError, logRoute, logger } from '@/lib/logger';
+import { useAppSettingsValue } from '@/data/queries/appSettings';
 
 /**
  * Wraps the app with the side-effect installation needed to feed the logger:
@@ -13,6 +14,14 @@ import { logClick, logError, logRoute } from '@/lib/logger';
 export function LoggerProvider({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const lastPath = useRef<string | null>(null);
+  const settings = useAppSettingsValue();
+
+  // Master kill switch — admin can disable logging from /admin to drop the
+  // write firehose during peak load. This is the single point that gates
+  // every event source below.
+  useEffect(() => {
+    logger.setEnabled(settings.logging_enabled);
+  }, [settings.logging_enabled]);
 
   // Route changes
   useEffect(() => {

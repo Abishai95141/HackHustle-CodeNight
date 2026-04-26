@@ -40,7 +40,7 @@ export function StaffShellLayout({ badge, items, contentMaxWidth = 'wide' }: Pro
   }, [location.pathname]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background md:grid md:grid-cols-[240px_1fr]">
+    <div className="flex min-h-screen flex-col bg-background md:h-screen md:flex-row md:overflow-hidden">
       {/* Mobile top bar */}
       <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur md:hidden">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -76,9 +76,11 @@ export function StaffShellLayout({ badge, items, contentMaxWidth = 'wide' }: Pro
         <span className="w-10" />{/* spacer to keep title centred */}
       </header>
 
-      {/* Desktop sidebar */}
-      <aside className="hidden flex-col border-r border-border bg-card md:flex">
+      {/* Desktop sidebar — fixed height, scrolls independently of main */}
+      <aside className="hidden w-[240px] shrink-0 flex-col border-r border-border bg-card md:flex md:h-screen md:overflow-hidden">
         <BrandHeader badge={badge} />
+        {/* Nav scrolls inside the sidebar if it ever overflows; the brand
+            and user footer stay pinned. */}
         <NavSection items={items} />
         <UserFooter
           name={profile?.name ?? null}
@@ -87,8 +89,8 @@ export function StaffShellLayout({ badge, items, contentMaxWidth = 'wide' }: Pro
         />
       </aside>
 
-      {/* Content */}
-      <main className="overflow-y-auto">
+      {/* Content — the only thing that scrolls vertically on md+ */}
+      <main className="min-w-0 flex-1 overflow-y-auto md:h-screen">
         <div
           className={cn(
             'mx-auto px-4 py-6 sm:px-6 md:px-8 md:py-10',

@@ -1,12 +1,16 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { Bell, DoorOpen, Gavel, HelpCircle, LogIn, LogOut as LogOutIcon, ShieldCheck, Trophy, UserCheck, UserMinus, Users, Utensils } from 'lucide-react';
+import { Activity, Bell, DoorOpen, Eye, EyeOff, Gavel, HelpCircle, Lock, LogIn, LogOut as LogOutIcon, ShieldCheck, Trophy, Unlock, UserCheck, UserMinus, Users, Utensils } from 'lucide-react';
 import { PageHeader } from '@/components/composite/PageHeader';
 import { StatusPill } from '@/components/composite/StatusPill';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/data/client';
+import { useAppSettingsValue, type AppSettingKey } from '@/data/queries/appSettings';
+import { setAppSetting } from '@/data/rpc/appSettings';
 import { cn } from '@/lib/cn';
 
 export function AdminDashboardPage() {
@@ -173,6 +177,9 @@ export function AdminDashboardPage() {
   return (
     <div className="space-y-8">
       <PageHeader title="Overview" subtitle="Operational pulse — attendance, meals, support, judging." />
+
+      <ControlsPanel />
+
 
       {/* People — participants get a hero card; staff break out by role. */}
       <section className="space-y-3">
@@ -407,6 +414,117 @@ function Stat({
 
 function invalidateAll(qc: ReturnType<typeof useQueryClient>) {
   qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+}
+
+function ControlsPanel() {
+  const { scores_published, submissions_locked, logging_enabled } = useAppSettingsValue();
+  const qc = useQueryClient();
+
+  const toggle = useMutation({
+    mutationFn: ({ key, value }: { key: AppSettingKey; value: boolean }) => setAppSetting(key, value),
+    onMutate: async ({ key, value }) => {
+      // Optimistic — the toggle should feel instant.
+      await qc.cancelQueries({ queryKey: ['app-settings'] });
+      const prev = qc.getQueryData<Record<AppSettingKey, boolean>>(['app-settings']);
+      qc.setQueryData(['app-settings'], (old: Record<AppSettingKey, boolean> | undefined) => ({
+        ...(old ?? {}),
+        [key]: value,
+      }));
+      return { prev };
+    },
+    onError: (err: Error, _vars, ctx) => {
+      qc.setQueryData(['app-settings'], ctx?.prev);
+      toast.error(err.message ?? 'Failed to update setting');
+    },
+    onSuccess: (_data, vars) => {
+      const labels: Record<AppSettingKey, [string, string]> = {
+        scores_published:   ['Scores published — visible to participants', 'Scores hidden from participants'],
+        submissions_locked: ['Submissions locked',                          'Submissions unlocked'],
+        logging_enabled:    ['Activity logging on',                         'Activity logging paused'],
+      };
+      toast.success(labels[vars.key][vars.value ? 0 : 1]);
+    },
+  });
+
+  return (
+    <section className="space-y-3">
+      <SectionHeading>Controls</SectionHeading>
+      <div className="grid gap-3 md:grid-cols-3">
+        <ControlTile
+          title="Scores"
+          on={scores_published}
+          icon={scores_published ? Eye : EyeOff}
+          onLabel="Published — visible on the leaderboard"
+          offLabel="Hidden — judges can score; participants see a placeholder"
+          tone="emerald"
+          onChange={(v) => toggle.mutate({ key: 'scores_published', value: v })}
+        />
+        <ControlTile
+          title="Submissions"
+          on={!submissions_locked}
+          icon={submissions_locked ? Lock : Unlock}
+          onLabel="Open — teams can edit deck + GitHub URL"
+          offLabel="Locked — teams can view but not change their submission"
+          tone="amber"
+          // The semantic toggle is "submissions are open"; we invert the
+          // stored flag so the UI reads naturally. ON = open, OFF = locked.
+          onChange={(v) => toggle.mutate({ key: 'submissions_locked', value: !v })}
+        />
+        <ControlTile
+          title="Activity logging"
+          on={logging_enabled}
+          icon={Activity}
+          onLabel="Recording every meaningful event"
+          offLabel="Paused — saves Supabase write capacity"
+          tone="sky"
+          onChange={(v) => toggle.mutate({ key: 'logging_enabled', value: v })}
+        />
+      </div>
+    </section>
+  );
+}
+
+function ControlTile({
+  title,
+  on,
+  icon: Icon,
+  onLabel,
+  offLabel,
+  tone,
+  onChange,
+}: {
+  title: string;
+  on: boolean;
+  icon: React.ComponentType<{ className?: string }>;
+  onLabel: string;
+  offLabel: string;
+  tone: 'emerald' | 'amber' | 'sky';
+  onChange: (next: boolean) => void;
+}) {
+  const tones: Record<string, string> = {
+    emerald: 'border-emerald-500/40 bg-emerald-500/5',
+    amber: 'border-amber-500/40 bg-amber-500/5',
+    sky: 'border-sky-500/40 bg-sky-500/5',
+  };
+  const iconTones: Record<string, string> = {
+    emerald: 'text-emerald-700 dark:text-emerald-300',
+    amber: 'text-amber-700 dark:text-amber-300',
+    sky: 'text-sky-700 dark:text-sky-300',
+  };
+  return (
+    <div className={cn('flex items-start gap-3 rounded-md border bg-card p-4 transition-colors', on ? tones[tone] : 'border-border')}>
+      <div className={cn('mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary', on && iconTones[tone])}>
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-sm font-medium">{title}</div>
+          <Switch checked={on} onCheckedChange={onChange} />
+        </div>
+        <div className="mt-1 text-2xs text-muted-foreground">{on ? onLabel : offLabel}</div>
+      </div>
+    </div>
+  );
 }
 
 function SectionHeading({ children }: { children: React.ReactNode }) {

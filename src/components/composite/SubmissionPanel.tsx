@@ -7,6 +7,7 @@ import {
   FileText,
   Github,
   Loader2,
+  Lock,
   Trash2,
   Upload,
 } from 'lucide-react';
@@ -24,12 +25,14 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useTeamSubmission, type SubmissionRow } from '@/data/queries/submissions';
+import { useAppSettingsValue } from '@/data/queries/appSettings';
 import { deleteDeck, setGithubUrl, signDeckUrl, uploadDeck } from '@/data/rpc/submissions';
 
 const ACCEPT = '.pdf,.ppt,.pptx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation';
 
 export function SubmissionPanel({ teamId }: { teamId: string }) {
   const { data: submission, isLoading } = useTeamSubmission(teamId);
+  const { submissions_locked } = useAppSettingsValue();
   const qc = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -101,6 +104,16 @@ export function SubmissionPanel({ teamId }: { teamId: string }) {
         ) : null}
       </header>
 
+      {submissions_locked ? (
+        <div className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-2xs text-amber-700 dark:text-amber-300">
+          <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <div>
+            <strong>Submissions are locked.</strong> Your existing files and link are visible
+            below but can no longer be changed. Contact an organizer if you need an exception.
+          </div>
+        </div>
+      ) : null}
+
       {/* Deck */}
       <section className="space-y-2">
         <Label className="text-2xs uppercase tracking-[0.18em] text-muted-foreground">
@@ -142,7 +155,7 @@ export function SubmissionPanel({ teamId }: { teamId: string }) {
                 variant="outline"
                 size="sm"
                 onClick={() => fileRef.current?.click()}
-                disabled={upload.isPending}
+                disabled={upload.isPending || submissions_locked}
               >
                 {upload.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />} Replace
               </Button>
@@ -151,7 +164,8 @@ export function SubmissionPanel({ teamId }: { teamId: string }) {
                 size="icon"
                 className="text-rose-700 hover:bg-rose-500/10 dark:text-rose-300"
                 onClick={() => setConfirmDelete(true)}
-                title="Remove deck"
+                title={submissions_locked ? 'Submissions are locked' : 'Remove deck'}
+                disabled={submissions_locked}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -162,11 +176,11 @@ export function SubmissionPanel({ teamId }: { teamId: string }) {
             type="button"
             variant="outline"
             onClick={() => fileRef.current?.click()}
-            disabled={upload.isPending}
+            disabled={upload.isPending || submissions_locked}
             className="w-full"
           >
             {upload.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-            {upload.isPending ? 'Uploading…' : 'Upload deck'}
+            {submissions_locked ? 'Locked' : upload.isPending ? 'Uploading…' : 'Upload deck'}
           </Button>
         )}
       </section>
@@ -186,12 +200,17 @@ export function SubmissionPanel({ teamId }: { teamId: string }) {
               value={github}
               onChange={(e) => setGithub(e.target.value)}
               className="pl-9"
+              disabled={submissions_locked}
             />
           </div>
           <Button
             type="button"
             onClick={() => saveGithub.mutate()}
-            disabled={saveGithub.isPending || github === (submission?.github_url ?? '')}
+            disabled={
+              saveGithub.isPending ||
+              github === (submission?.github_url ?? '') ||
+              submissions_locked
+            }
           >
             {saveGithub.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
             Save

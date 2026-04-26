@@ -1,15 +1,17 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Crown, Medal } from 'lucide-react';
+import { Crown, Lock, Medal } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { EmptyState } from '@/components/composite/EmptyState';
 import { useLeaderboardTeams } from '@/data/queries/teams';
+import { useAppSettingsValue } from '@/data/queries/appSettings';
 import { supabase } from '@/data/client';
 import { cn } from '@/lib/cn';
 
 export function LeaderboardView({ compact = false }: { compact?: boolean }) {
   const { data: teams = [], isLoading } = useLeaderboardTeams();
+  const { scores_published } = useAppSettingsValue();
   const qc = useQueryClient();
 
   useEffect(() => {
@@ -29,6 +31,22 @@ export function LeaderboardView({ compact = false }: { compact?: boolean }) {
 
   if (isLoading) {
     return <p className="text-sm text-muted-foreground">Loading…</p>;
+  }
+
+  // Hard gate: when the admin hasn't pressed Publish, participants see a
+  // friendly placeholder instead of the live (in-progress) totals.
+  if (!scores_published) {
+    return (
+      <EmptyState
+        title="Scores aren't published yet"
+        body="Judges are still scoring. The board will appear here the moment organizers release the results."
+        action={
+          <div className="inline-flex items-center gap-2 text-2xs uppercase tracking-[0.2em] text-muted-foreground">
+            <Lock className="h-3.5 w-3.5" /> Live updates enabled
+          </div>
+        }
+      />
+    );
   }
 
   if (teams.length === 0) {
