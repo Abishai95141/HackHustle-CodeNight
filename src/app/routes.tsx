@@ -32,6 +32,7 @@ const AdminWinnersPage           = lazy(() => import('@/features/admin/AdminWinn
 const ScannerPage                = lazy(() => import('@/features/scanner/ScannerPage').then((m) => ({ default: m.ScannerPage })));
 const VolunteerNotifyPage        = lazy(() => import('@/features/scanner/VolunteerNotifyPage').then((m) => ({ default: m.VolunteerNotifyPage })));
 const RsvpRosterPage             = lazy(() => import('@/features/rsvp/RsvpRosterPage').then((m) => ({ default: m.RsvpRosterPage })));
+const RsvpTeamsPage              = lazy(() => import('@/features/rsvp/RsvpTeamsPage').then((m) => ({ default: m.RsvpTeamsPage })));
 const JudgeListPage              = lazy(() => import('@/features/judging/JudgeListPage').then((m) => ({ default: m.JudgeListPage })));
 const ParticipantHomePage        = lazy(() => import('@/features/participant/ParticipantHomePage').then((m) => ({ default: m.ParticipantHomePage })));
 const ParticipantTeamPage        = lazy(() => import('@/features/participant/ParticipantTeamPage').then((m) => ({ default: m.ParticipantTeamPage })));
@@ -106,6 +107,7 @@ export function AppRoutes() {
           }
         >
           <Route path="/rsvp" element={<RsvpRosterPage />} />
+          <Route path="/rsvp/tables" element={<RsvpTeamsPage />} />
         </Route>
 
         {/* Query team */}

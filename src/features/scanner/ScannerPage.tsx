@@ -108,6 +108,12 @@ export function ScannerPage() {
           push({ ok: true, who: target.name, message: msg });
           toast.success(`${target.name} · ${msg}`);
         } else {
+          // Resolve the human-readable session name once so it's used in both
+          // the success and the duplicate-error paths. Falls back to the slug
+          // if the meals lookup hasn't loaded yet (very rare race).
+          const session = (meals.data ?? []).find((m) => m.meal_type === meal);
+          const sessionLabel = session?.display_name ?? meal!;
+
           const ins = await supabase.from('meal_transactions').insert({
             user_id: target.id,
             meal_type: meal!,
@@ -120,15 +126,16 @@ export function ScannerPage() {
             // a stale client cache could miss it — server has the final say.
             const blockedAbsent = ins.error.code === 'P0001';
             const msg = dup
-              ? 'Already claimed this meal'
+              ? `${sessionLabel} already claimed`
               : blockedAbsent
                 ? 'Marked absent — scan invalid'
                 : 'Failed to record meal';
             push({ ok: false, who: target.name, message: msg });
             toast.error(`${target.name} · ${msg}`);
           } else {
-            push({ ok: true, who: target.name, message: 'Meal claimed' });
-            toast.success(`${target.name} · Meal claimed`);
+            const okMsg = `${sessionLabel} claimed`;
+            push({ ok: true, who: target.name, message: okMsg });
+            toast.success(`${target.name} · ${okMsg}`);
           }
         }
       } catch (err: unknown) {

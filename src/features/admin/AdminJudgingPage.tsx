@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, Award, Eraser, Gavel, Loader2, Search, Trash2 } from 'lucide-react';
+import { AlertTriangle, Award, CheckCircle2, ChevronDown, ChevronRight, Circle, ClipboardCheck, Eraser, Gavel, Loader2, Search, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/composite/PageHeader';
 import { EmptyState } from '@/components/composite/EmptyState';
 import { Button } from '@/components/ui/button';
@@ -38,14 +38,16 @@ import { cn } from '@/lib/cn';
 import {
   useJudges,
   useJudgeAssignments,
+  useJudgingStatus,
   useRankingsByDomain,
+  type JudgingStatus,
 } from '@/data/queries/judging';
 import { assignTeamsToJudge, unassignTeamFromJudge } from '@/data/rpc/judging';
 import { TEAM_DOMAINS, useTeams, type TeamDomain } from '@/data/queries/teams';
 import { activeRoundName } from '@/config/rules.scoring';
 import { TOTAL_MAX } from '@/domain/scoring/rules';
 
-type Tab = 'assign' | 'rankings';
+type Tab = 'assign' | 'status' | 'rankings';
 type DomainFilter = 'all' | TeamDomain;
 
 export function AdminJudgingPage() {
@@ -55,19 +57,22 @@ export function AdminJudgingPage() {
     <div className="space-y-8">
       <PageHeader
         title="Judging"
-        subtitle={`Assign teams to judges and watch the per-domain rankings, ${activeRoundName}.`}
+        subtitle={`Assign teams, track scoring progress, and review per-domain rankings, ${activeRoundName}.`}
       />
 
-      <div className="inline-flex rounded-md border border-border p-0.5">
+      <div className="inline-flex flex-wrap rounded-md border border-border p-0.5">
         <TabBtn active={tab === 'assign'} onClick={() => setTab('assign')} icon={Gavel}>
           Assignments
+        </TabBtn>
+        <TabBtn active={tab === 'status'} onClick={() => setTab('status')} icon={ClipboardCheck}>
+          Status
         </TabBtn>
         <TabBtn active={tab === 'rankings'} onClick={() => setTab('rankings')} icon={Award}>
           Rankings
         </TabBtn>
       </div>
 
-      {tab === 'assign' ? <AssignSection /> : <RankingsSection />}
+      {tab === 'assign' ? <AssignSection /> : tab === 'status' ? <StatusSection /> : <RankingsSection />}
     </div>
   );
 }
@@ -319,6 +324,205 @@ function AssignSection() {
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+const STATUS_TONE: Record<JudgingStatus, string> = {
+  unassigned: 'border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-300',
+  not_started: 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+  partial: 'border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-300',
+  complete: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+};
+
+const STATUS_LABEL: Record<JudgingStatus, string> = {
+  unassigned: 'Unassigned',
+  not_started: 'Not started',
+  partial: 'Partial',
+  complete: 'Complete',
+};
+
+function StatusSection() {
+  const status = useJudgingStatus(activeRoundName);
+  const [filter, setFilter] = useState<'all' | JudgingStatus>('all');
+  const [domainFilter, setDomainFilter] = useState<DomainFilter>('all');
+  const [search, setSearch] = useState('');
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  const counts = status.data?.counts ?? { unassigned: 0, not_started: 0, partial: 0, complete: 0 };
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return (status.data?.rows ?? []).filter((r) => {
+      if (filter !== 'all' && r.status !== filter) return false;
+      if (domainFilter !== 'all' && r.team.domain !== domainFilter) return false;
+      if (q) {
+        const hay = `${r.team.team_name} ${r.team.team_code}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [status.data?.rows, filter, domainFilter, search]);
+
+  function toggleExpanded(id: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Stat tiles — clickable to filter */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {(['unassigned', 'not_started', 'partial', 'complete'] as const).map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => setFilter(filter === s ? 'all' : s)}
+            className={cn(
+              'flex flex-col items-start gap-1 rounded-md border p-3 text-left transition-all',
+              STATUS_TONE[s],
+              filter === s ? 'opacity-100 ring-2 ring-foreground/20' : 'opacity-70 hover:opacity-100',
+            )}
+          >
+            <span className="text-2xs font-medium uppercase tracking-[0.18em]">
+              {STATUS_LABEL[s]}
+            </span>
+            <span className="font-display text-xl font-semibold tabular-nums">{counts[s]}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Toolbar */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[220px]">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search team name or code…"
+            className="pl-9"
+          />
+        </div>
+        <Select value={domainFilter} onValueChange={(v) => setDomainFilter(v as DomainFilter)}>
+          <SelectTrigger className="w-44">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All domains</SelectItem>
+            {TEAM_DOMAINS.map((d) => (
+              <SelectItem key={d} value={d}>{d}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Status table */}
+      <div className="overflow-hidden rounded-lg border border-border bg-card">
+        {status.isLoading ? (
+          <p className="px-4 py-12 text-center text-sm text-muted-foreground">Loading…</p>
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            title="Nothing matches"
+            body="Adjust the filter or search to see more teams."
+          />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-8" />
+                <TableHead>Team</TableHead>
+                <TableHead>Domain</TableHead>
+                <TableHead>Assigned</TableHead>
+                <TableHead>Judged</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((r) => {
+                const scoredCount = r.assignedJudges.filter((j) => j.scored).length;
+                const isOpen = expanded.has(r.team.id);
+                return (
+                  <>
+                    <TableRow
+                      key={r.team.id}
+                      className="cursor-pointer transition-colors hover:bg-secondary/40"
+                      onClick={() => toggleExpanded(r.team.id)}
+                    >
+                      <TableCell>
+                        {isOpen ? (
+                          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                        ) : (
+                          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">{r.team.team_name}</div>
+                        <div className="font-mono text-2xs text-muted-foreground">{r.team.team_code}</div>
+                      </TableCell>
+                      <TableCell>
+                        {r.team.domain ? (
+                          <DomainPill domain={r.team.domain} />
+                        ) : (
+                          <span className="text-2xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-mono tabular-nums text-sm">
+                        {r.assignedJudges.length}
+                      </TableCell>
+                      <TableCell className="font-mono tabular-nums text-sm">
+                        {scoredCount} / {r.assignedJudges.length}
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={cn(
+                            'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em]',
+                            STATUS_TONE[r.status],
+                          )}
+                        >
+                          {STATUS_LABEL[r.status]}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                    {isOpen ? (
+                      <TableRow key={`${r.team.id}-detail`}>
+                        <TableCell colSpan={6} className="bg-background/40 py-3">
+                          {r.assignedJudges.length === 0 ? (
+                            <p className="text-2xs text-muted-foreground">
+                              No judges assigned yet. Use the Assignments tab to fix this.
+                            </p>
+                          ) : (
+                            <ul className="grid gap-1 sm:grid-cols-2">
+                              {r.assignedJudges.map((j) => (
+                                <li
+                                  key={j.id}
+                                  className="flex items-center gap-2 text-2xs"
+                                >
+                                  {j.scored ? (
+                                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                                  ) : (
+                                    <Circle className="h-3.5 w-3.5 text-muted-foreground" />
+                                  )}
+                                  <span className={cn(j.scored ? '' : 'text-muted-foreground')}>
+                                    {j.name}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                  </>
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
+      </div>
     </div>
   );
 }

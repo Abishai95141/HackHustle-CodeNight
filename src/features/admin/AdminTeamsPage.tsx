@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, Edit2, Flame, Loader2, Plus, Search, Trash2, UserMinus, UserPlus, Users } from 'lucide-react';
+import { AlertTriangle, Check, Edit2, Flame, Loader2, Pencil, Plus, Search, Trash2, UserMinus, UserPlus, Users, X } from 'lucide-react';
 import { PageHeader } from '@/components/composite/PageHeader';
 import { EmptyState } from '@/components/composite/EmptyState';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,9 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useTeams, useUnassignedProfiles, TEAM_DOMAINS, type TeamDomain, type TeamRow } from '@/data/queries/teams';
+import { setTeamTableNumber } from '@/data/rpc/teams';
 import { supabase } from '@/data/client';
+import { cn } from '@/lib/cn';
 
 export function AdminTeamsPage() {
   const { data: teams = [], isLoading } = useTeams();
@@ -321,7 +323,7 @@ export function AdminTeamsPage() {
                       <span className="text-muted-foreground">—</span>
                     )}
                   </TableCell>
-                  <TableCell>{t.table_number ?? '—'}</TableCell>
+                  <TableCell><InlineTableNumber team={t} /></TableCell>
                   <TableCell>
                     <span
                       className="inline-flex items-center gap-2 text-muted-foreground"
@@ -577,5 +579,110 @@ export function AdminTeamsPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+/** Click-to-edit cell for the team table number. Saves via the SECURITY
+ *  DEFINER RPC so this same component works for RSVP staff too. */
+function InlineTableNumber({ team }: { team: TeamRow }) {
+  const qc = useQueryClient();
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(team.table_number ?? '');
+
+  const save = useMutation({
+    mutationFn: () => setTeamTableNumber(team.id, draft.trim() || null),
+    onMutate: async () => {
+      // Optimistic — the cell flips instantly so the workflow feels snappy.
+      const next = draft.trim() || null;
+      await qc.cancelQueries({ queryKey: ['admin', 'teams'] });
+      const prev = qc.getQueryData<TeamRow[]>(['admin', 'teams']);
+      qc.setQueryData<TeamRow[]>(['admin', 'teams'], (old) =>
+        (old ?? []).map((t) => (t.id === team.id ? { ...t, table_number: next } : t)),
+      );
+      return { prev };
+    },
+    onError: (err: Error, _vars, ctx) => {
+      qc.setQueryData(['admin', 'teams'], ctx?.prev);
+      toast.error(err.message ?? 'Failed to save');
+    },
+    onSuccess: () => {
+      toast.success('Table updated');
+      setEditing(false);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['admin', 'teams'] }),
+  });
+
+  function commit() {
+    if ((team.table_number ?? '') === draft.trim()) {
+      setEditing(false);
+      return;
+    }
+    save.mutate();
+  }
+
+  function cancel() {
+    setDraft(team.table_number ?? '');
+    setEditing(false);
+  }
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-1">
+        <Input
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') commit();
+            if (e.key === 'Escape') cancel();
+          }}
+          onBlur={commit}
+          className="h-8 w-20"
+          placeholder="—"
+        />
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            // mousedown so the click fires before the input's onBlur cancels.
+            e.preventDefault();
+            commit();
+          }}
+          className="text-emerald-600 hover:text-emerald-700"
+          title="Save (Enter)"
+        >
+          <Check className="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            cancel();
+          }}
+          className="text-muted-foreground hover:text-foreground"
+          title="Cancel (Esc)"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        setDraft(team.table_number ?? '');
+        setEditing(true);
+      }}
+      className={cn(
+        'group inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 text-left transition-colors hover:bg-secondary',
+      )}
+      title="Click to edit table number"
+    >
+      <span className={team.table_number ? '' : 'text-muted-foreground'}>
+        {team.table_number ?? '—'}
+      </span>
+      <Pencil className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-60" />
+    </button>
   );
 }

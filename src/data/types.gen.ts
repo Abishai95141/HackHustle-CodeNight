@@ -728,6 +728,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      set_team_table_number: {
+        Args: { _team_id: string; _table_number: string }
+        Returns: void
+      }
       mark_attendance: {
         Args: {
           _user_id: string
