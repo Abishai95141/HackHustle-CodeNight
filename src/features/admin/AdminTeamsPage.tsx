@@ -32,6 +32,7 @@ import { useTeams, useUnassignedProfiles, TEAM_DOMAINS, type TeamDomain, type Te
 import { setTeamTableNumber } from '@/data/rpc/teams';
 import { supabase } from '@/data/client';
 import { cn } from '@/lib/cn';
+import { TeamDetailDialog } from '@/components/composite/TeamDetailDialog';
 
 export function AdminTeamsPage() {
   const { data: teams = [], isLoading } = useTeams();
@@ -47,6 +48,7 @@ export function AdminTeamsPage() {
   const [purgeOpen, setPurgeOpen] = useState(false);
   const [purgeConfirm, setPurgeConfirm] = useState('');
   const PURGE_PHRASE = 'DELETE ALL TEAMS';
+  const [viewing, setViewing] = useState<TeamRow | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -273,7 +275,7 @@ export function AdminTeamsPage() {
         />
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border bg-card">
+      <div className="overflow-x-auto rounded-lg border border-border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -304,7 +306,11 @@ export function AdminTeamsPage() {
               </TableRow>
             ) : (
               filtered.map((t) => (
-                <TableRow key={t.id}>
+                <TableRow
+                  key={t.id}
+                  onClick={() => setViewing(t)}
+                  className="cursor-pointer transition-colors hover:bg-secondary/40"
+                >
                   <TableCell className="font-medium">{t.team_name}</TableCell>
                   <TableCell className="font-mono text-2xs text-muted-foreground">{t.team_code}</TableCell>
                   <TableCell>
@@ -323,7 +329,7 @@ export function AdminTeamsPage() {
                       <span className="text-muted-foreground">—</span>
                     )}
                   </TableCell>
-                  <TableCell><InlineTableNumber team={t} /></TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}><InlineTableNumber team={t} /></TableCell>
                   <TableCell>
                     <span
                       className="inline-flex items-center gap-2 text-muted-foreground"
@@ -337,7 +343,7 @@ export function AdminTeamsPage() {
                     </span>
                   </TableCell>
                   <TableCell className="font-mono">{(t.total_score ?? 0).toFixed(1)}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                     <div className="inline-flex gap-1">
                       <Button variant="ghost" size="icon" onClick={() => setEditing(t)}>
                         <Edit2 className="h-4 w-4" />
@@ -578,6 +584,14 @@ export function AdminTeamsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Click-anywhere-on-row detail popup */}
+      <TeamDetailDialog
+        team={viewing}
+        onClose={() => setViewing(null)}
+        onEdit={(t) => setEditing(t)}
+        onDelete={(t) => setDeleting(t)}
+      />
     </div>
   );
 }

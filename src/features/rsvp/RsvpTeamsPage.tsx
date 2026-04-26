@@ -100,7 +100,7 @@ export function RsvpTeamsPage() {
         </Select>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border bg-card">
+      <div className="overflow-x-auto rounded-lg border border-border bg-card">
         {isLoading ? (
           <p className="py-12 text-center text-sm text-muted-foreground">Loading…</p>
         ) : filtered.length === 0 ? (

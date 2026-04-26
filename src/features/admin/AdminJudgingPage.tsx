@@ -421,7 +421,7 @@ function StatusSection() {
       </div>
 
       {/* Status table */}
-      <div className="overflow-hidden rounded-lg border border-border bg-card">
+      <div className="overflow-x-auto rounded-lg border border-border bg-card">
         {status.isLoading ? (
           <p className="px-4 py-12 text-center text-sm text-muted-foreground">Loading…</p>
         ) : filtered.length === 0 ? (

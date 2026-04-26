@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { AlertTriangle, Edit2, Flame, Loader2, Plus, Search, Trash2, Upload, UserPlus } from 'lucide-react';
+import { UserDetailDialog } from '@/components/composite/UserDetailDialog';
 import { PageHeader } from '@/components/composite/PageHeader';
 import { EmptyState } from '@/components/composite/EmptyState';
 import { StatusPill } from '@/components/composite/StatusPill';
@@ -70,6 +71,7 @@ export function AdminUsersPage() {
   const [editingRole, setEditingRole] = useState<AppRole>('participant');
 
   const [deleting, setDeleting] = useState<UserRow | null>(null);
+  const [viewing, setViewing] = useState<UserRow | null>(null);
 
   const [creating, setCreating] = useState(false);
   const [createTeamId, setCreateTeamId] = useState<string>('none');
@@ -593,7 +595,7 @@ export function AdminUsersPage() {
         </Select>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border bg-card">
+      <div className="overflow-x-auto rounded-lg border border-border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -628,7 +630,11 @@ export function AdminUsersPage() {
               </TableRow>
             ) : (
               filtered.map((u) => (
-                <TableRow key={u.id}>
+                <TableRow
+                  key={u.id}
+                  onClick={() => setViewing(u)}
+                  className="cursor-pointer transition-colors hover:bg-secondary/40"
+                >
                   <TableCell className="font-medium">{u.name}</TableCell>
                   <TableCell className="text-muted-foreground">{u.email}</TableCell>
                   <TableCell>
@@ -661,7 +667,10 @@ export function AdminUsersPage() {
                       </StatusPill>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell
+                    className="text-right"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <div className="inline-flex gap-1">
                       <Button
                         variant="ghost"
@@ -790,6 +799,17 @@ export function AdminUsersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Click-anywhere-on-row detail popup */}
+      <UserDetailDialog
+        user={viewing}
+        onClose={() => setViewing(null)}
+        onEditRole={(u) => {
+          setEditing(u);
+          setEditingRole(u.role ?? 'participant');
+        }}
+        onDelete={(u) => setDeleting(u)}
+      />
     </div>
   );
 }
