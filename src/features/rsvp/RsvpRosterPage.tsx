@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { CheckCircle2, LogOut as LogOutIcon, Search, UserMinus, UserPlus } from 'lucide-react';
+import { CheckCircle2, Download, LogOut as LogOutIcon, Search, UserMinus, UserPlus } from 'lucide-react';
 import { PageHeader } from '@/components/composite/PageHeader';
 import { EmptyState } from '@/components/composite/EmptyState';
 import { AttendancePill } from '@/components/composite/AttendancePill';
@@ -41,6 +41,7 @@ import {
 } from '@/data/queries/attendance';
 import { TEAM_DOMAINS } from '@/data/queries/teams';
 import { bulkMarkAttendance, markAttendance } from '@/data/rpc/attendance';
+import { downloadCsv } from '@/lib/csv';
 import type { AttendanceStatus } from '@/data/queries/users';
 
 type Filter = 'all' | AttendanceStatus;
@@ -144,6 +145,30 @@ export function RsvpRosterPage() {
     onSettled: () => qc.invalidateQueries({ queryKey: ['rsvp', 'roster'] }),
   });
 
+  function exportSelected() {
+    const ids = selected;
+    if (ids.size === 0) {
+      toast.error('Select participants first');
+      return;
+    }
+    // Preserve the order of the currently filtered/sorted view rather than
+    // selection order — easier to scan against what's on screen.
+    const picked = filtered.filter((r) => ids.has(r.id));
+    const rows = picked.map((r) => ({
+      Name: r.name,
+      Email: r.email,
+      Phone: r.phone ?? '',
+      Team: r.team?.team_name ?? '',
+      'Team Code': r.team?.team_code ?? '',
+      Domain: r.team?.domain ?? '',
+      Status: r.attendance_status,
+      'Marked At': r.attendance_marked_at ?? '',
+    }));
+    const stamp = new Date().toISOString().slice(0, 10);
+    downloadCsv(`hackhustle-participants-${stamp}.csv`, rows);
+    toast.success(`Exported ${rows.length} participant${rows.length === 1 ? '' : 's'}`);
+  }
+
   function applyBulk(status: AttendanceStatus) {
     const ids = Array.from(selected);
     if (ids.length === 0) {
@@ -240,6 +265,9 @@ export function RsvpRosterPage() {
           <div className="ml-auto flex gap-2">
             <Button size="sm" variant="outline" onClick={() => setSelected(new Set())}>
               Clear
+            </Button>
+            <Button size="sm" variant="outline" onClick={exportSelected}>
+              <Download className="h-4 w-4" /> Export CSV
             </Button>
             <Button size="sm" variant="outline" onClick={() => applyBulk('pending')}>
               Reset to pending
